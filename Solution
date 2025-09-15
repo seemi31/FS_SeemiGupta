@@ -1,0 +1,121 @@
+1. Sign Up & Verify
+•	Process:
+o	User signs up via *.edu email.
+o	Auth service (Firebase Auth/Auth0) sends verification link.
+o	Multi-Factor Authentication (MFA) with SMS/Authenticator app for extra security.
+o	Backend generates UUID-based UserID + anonymous username (SolarPanther721).
+•	Use:
+o	Ensures only verified students join.
+o	Protects privacy with anonymous usernames.
+________________________________________
+2. Profile Setup
+•	Process:
+o	User sets commute profile:
+	Home location (lat/lon)
+	Destination (school/college building)
+	Commute window (e.g., 8:00–8:30 AM)
+	Role: Driver/Rider
+	Car details (optional, verified)
+	Travel vibe tags (QuietRide, Music, Study)
+o	Stored in Postgres/PostGIS.
+o	Indexed with spatial index (GiST) for fast route overlap queries.
+•	Use:
+o	Backend uses this data for precise geospatial matching.
+o	Vibe tags + car details → better trust & comfort in matching.
+________________________________________
+3. Ride Request / Offer
+•	Process:
+o	Rider/Driver posts a ride intent via API:
+POST /rides {userId, start, end, timeWindow, role}
+o	Stored in DB + sent to Matchmaking queue (Celery/RabbitMQ).
+•	Use:
+o	Allows real-time and dynamic ride availability.
+o	Handles last-minute requests and new student joins seamlessly.
+________________________________________
+4. Matchmaking
+•	Process:
+o	Match engine queries PostGIS: find overlapping routes using ST_Intersection and ST_DWithin (geospatial functions).
+o	Calculates compatibility score with weighted formula:
+o	score = (0.4 * route_overlap%) +
+o	        (0.3 * time_proximity) -
+o	        (0.2 * detour_cost) +
+o	        (0.1 * user_rating)
+o	Results ranked and returned to frontend.
+•	Use:
+o	Optimized for convenience and fairness.
+o	Minimizes detours for drivers, increases chance of smooth carpools.
+________________________________________
+5. View Matches
+•	Process:
+o	Frontend (React Native/Flutter) renders animated routes on Mapbox/Google Maps API.
+o	Shows anonymous profiles with:
+	User rating (avg from past rides)
+	Travel vibes
+	Optional car details
+o	Pulls live data via API + WebSocket for real-time availability.
+•	Use:
+o	Builds trust (ratings), comfort (vibe tags), and safety (anonymity).
+o	Interactive map = engaging UX.
+________________________________________
+6. Confirm Ride + Chat
+•	Process:
+o	On confirmation:
+	Backend reserves ride (seat lock).
+	Creates a chat channel in Firebase Realtime DB / WebSocket server.
+o	In-app chat supports quick-reply templates:
+	“On my way 🚗”
+	“Running late ⏳”
+	“Where are you? 📍”
+•	Use:
+o	Real-time communication without exchanging phone numbers.
+o	Efficiency with quick replies.
+________________________________________
+7. Live Tracking & SOS
+•	Process:
+o	Driver’s GPS is streamed via WebSocket or MQTT to backend.
+o	Rider sees live ETA updates.
+o	If SOS pressed:
+	Backend triggers Lambda/Cloud Function.
+	Sends SMS/Email to emergency contacts.
+	Generates secure, temporary tracking link (valid 60 mins).
+•	Use:
+o	Transparency & trust during ride.
+o	Safety net in emergencies.
+________________________________________
+8. Ride Completion
+•	Process:
+o	When ride ends:
+	Trip status updated in DB.
+	Both users submit ratings (1–5 stars).
+	Ratings stored in UserProfile table + factored into future matches.
+o	Backend emits event → Gamification Engine.
+•	Use:
+o	Builds reputation system.
+o	Encourages good behavior & reliability.
+________________________________________
+9. Gamification Engine (Unique Feature)
+•	Process:
+o	Points awarded automatically:
+	+10 for rider trip, +15 for driver trip, + bonus for eco-friendly carpools.
+o	Leaderboard updated in Redis (fast read) for quick display.
+o	Badge logic:
+	First Ride → 🥉 “Newbie”
+	50 Trips → 🥈 “Carpool Champion”
+	100 Trips → 🥇 “Eco Hero”
+o	Rewards integration:
+	Points redeemed via API → local partners (coffee shop, bookstore, parking discounts).
+•	Use:
+o	Makes app sticky & engaging for Gen-Z students.
+o	Encourages consistent use (more rides = more rewards).
+o	Builds eco-friendly campus culture.
+________________________________________
+10. Rewards & Engagement
+•	Process:
+o	Students open “Rewards” tab.
+o	Redeem points via API (/rewards/redeem).
+o	Backend issues QR code/voucher valid at local partners.
+•	Use:
+o	Converts participation → tangible benefits.
+o	Promotes campus partnerships (coffee shops, bookstores, parking).
+o	Strengthens loyalty to the platform.
+
