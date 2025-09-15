@@ -1,3 +1,9 @@
+Student Commute Optimizer (full stack)
+
+
+
+Modules included:
+
 1. Sign Up & Verify
 •	Process:
 o	User signs up via *.edu email.
@@ -92,7 +98,9 @@ o	Backend emits event → Gamification Engine.
 •	Use:
 o	Builds reputation system.
 o	Encourages good behavior & reliability.
-________________________________________
+___________________________________________________________________________
+A UNIQUE FEATURE
+____________________________________________________________________________
 9. Gamification Engine (Unique Feature)
 •	Process:
 o	Points awarded automatically:
